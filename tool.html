@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Device Info & Camera Snapshot Tool</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    .info { margin-bottom: 10px; }
+    video, canvas { max-width: 100%; border: 2px solid #333; border-radius: 10px; }
+    button { padding: 10px 20px; font-size: 16px; margin-top: 10px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>🔎 Device Info & Camera Snapshot</h1>
+
+  <div class="info"><strong>IP Address:</strong> <span id="ip"></span></div>
+  <div class="info"><strong>Device Info:</strong> <span id="device"></span></div>
+  <div class="info"><strong>Battery:</strong> <span id="battery"></span></div>
+
+  <h2>📸 Camera</h2>
+  <video id="video" width="320" height="240" autoplay></video>
+  <br>
+  <button id="snap">Take Snapshot</button>
+  <h3>Snapshot:</h3>
+  <canvas id="canvas" width="320" height="240"></canvas>
+
+  <script>
+    // Get IP address using API
+    fetch('https://api.ipify.org?format=json')
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('ip').textContent = data.ip;
+      });
+
+    // Get device info
+    document.getElementById('device').textContent = navigator.userAgent;
+
+    // Get battery status
+    if (navigator.getBattery) {
+      navigator.getBattery().then(function(battery) {
+        document.getElementById('battery').textContent = 
+          Math.round(battery.level * 100) + '% ' + (battery.charging ? '(Charging)' : '(Not Charging)');
+      });
+    } else {
+      document.getElementById('battery').textContent = 'Battery API not supported';
+    }
+
+    // Camera access & snapshot
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const context = canvas.getContext('2d');
+    const snapBtn = document.getElementById('snap');
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        video.srcObject = stream;
+      })
+      .catch(err => {
+        alert('Camera access denied: ' + err);
+      });
+
+    snapBtn.addEventListener('click', () => {
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    });
+  </script>
+</body>
+</html>
